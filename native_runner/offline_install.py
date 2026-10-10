@@ -11,7 +11,7 @@ import uuid
 import zipfile
 import hashlib
 
-from native_runner.offline_build import PACKAGE, sha256, supported_engine
+from native_runner.offline_build import PACKAGE, sha256, supported_engine, verify_original_apk
 
 APP = "nullsroyale.rel.free"
 DATA = f"/data/user/0/{APP}"
@@ -106,17 +106,15 @@ def check_prepared_device(device):
 
 def check_original_game(device, apk):
     """Verify the original APK and updated VM before building the probe APK."""
-    release = supported_engine()
-    if sha256(apk) != release["apk_sha256"]:
-        raise ValueError("Input APK SHA-256 differs from supported_engine.json")
+    verify_original_apk(apk)
     installed_path, hashes = check_prepared_device(device)
     installed_sha256 = device.shell(f"sha256sum {shlex.quote(installed_path)}").split()[0]
-    if installed_sha256 != release["apk_sha256"]:
-        raise ValueError("Installed game APK differs from the supported original APK")
+    if installed_sha256 != sha256(apk):
+        raise ValueError("Installed game APK differs from the supplied original APK")
     return {
         "original_apk_verified": True,
-        "apk_version": release["apk_version"],
-        "runtime_content_version": release["runtime_content_version"],
+        "apk_version": supported_engine()["apk_version"],
+        "runtime_content_version": supported_engine()["runtime_content_version"],
         "resource_files_verified": len(hashes),
     }
 

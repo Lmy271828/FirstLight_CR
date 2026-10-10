@@ -57,9 +57,43 @@ def test_output_reuses_device_resources_and_rejects_bundled_update(tmp_path, mon
 def test_wrong_apk_rejected_before_creating_output(tmp_path):
     apk = tmp_path / "wrong.apk"
     apk.write_bytes(b"unsupported")
-    with pytest.raises(ValueError, match="SHA-256"):
+    with pytest.raises(ValueError, match="neither the supported original APK"):
         prepare(apk, None, tmp_path / "output")
     assert not (tmp_path / "output").exists()
+
+
+def test_check_input_accepts_repack_with_identical_engine_payload(tmp_path, monkeypatch):
+    import hashlib
+
+    import native_runner.offline_build as build
+
+    engine = b"engine-bytes"
+    monkeypatch.setattr(
+        build,
+        "supported_engine",
+        lambda: {"apk_sha256": "0" * 64, "libg_sha256": hashlib.sha256(engine).hexdigest()},
+    )
+    apk = tmp_path / "repack.apk"
+    with zipfile.ZipFile(apk, "w") as archive:
+        archive.writestr("lib/arm64-v8a/libg.so", engine)
+    build.verify_original_apk(apk)
+
+
+def test_check_input_rejects_unknown_engine_payload(tmp_path, monkeypatch):
+    import hashlib
+
+    import native_runner.offline_build as build
+
+    monkeypatch.setattr(
+        build,
+        "supported_engine",
+        lambda: {"apk_sha256": "0" * 64, "libg_sha256": hashlib.sha256(b"pinned-engine").hexdigest()},
+    )
+    apk = tmp_path / "repack.apk"
+    with zipfile.ZipFile(apk, "w") as archive:
+        archive.writestr("lib/arm64-v8a/libg.so", b"different-engine")
+    with pytest.raises(ValueError, match="neither the supported original APK"):
+        build.verify_original_apk(apk)
 
 
 @pytest.mark.parametrize("path", ["../outside", "/outside", "C:/outside", "assets/../../outside", "assets\\outside"])

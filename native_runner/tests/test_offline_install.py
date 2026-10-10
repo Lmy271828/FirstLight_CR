@@ -4,6 +4,7 @@ import json
 
 import pytest
 
+from native_runner import offline_build as build
 from native_runner import offline_install as install
 
 
@@ -119,6 +120,7 @@ def test_check_original_game_reads_apk_and_resources_without_replacing_app(monke
     release = install.supported_engine()
     apk = tmp_path / "original.apk"
     monkeypatch.setattr(install, "sha256", lambda path: release["apk_sha256"])
+    monkeypatch.setattr(build, "sha256", lambda path: release["apk_sha256"])
     monkeypatch.setattr(install, "resource_hashes", lambda device: {"fingerprint.json": "verified"})
     monkeypatch.setattr(install, "validate_resources", lambda hashes: None)
 
@@ -138,7 +140,10 @@ def test_check_original_game_reads_apk_and_resources_without_replacing_app(monke
 
 def test_check_original_game_rejects_wrong_apk_before_device_access(monkeypatch, tmp_path):
     monkeypatch.setattr(install, "sha256", lambda path: "0" * 64)
+    monkeypatch.setattr(build, "sha256", lambda path: "0" * 64)
+    wrong = tmp_path / "wrong.apk"
+    wrong.write_bytes(b"unsupported")
     device = Device([])
-    with pytest.raises(ValueError, match="Input APK SHA-256"):
-        install.check_original_game(device, tmp_path / "wrong.apk")
+    with pytest.raises(ValueError, match="neither the supported original APK"):
+        install.check_original_game(device, wrong)
     assert device.calls == []
