@@ -49,6 +49,7 @@ venv/
 Thumbs.db
 .DS_Store
 .idea/
+.zcode/
 
 # Curated public checkpoints (listed in checkpoints/manifest.json).
 !/checkpoints/2_6hog_expert/hog26-specialist1.pt
