@@ -58,3 +58,4 @@ Thumbs.db
 !/checkpoints/General/checkpoint-step-00000460.pt
 !/checkpoints/IL/checkpoint-step-00029396.pt
 /checkpoints/**/*.tmp
+/logs/
