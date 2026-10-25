@@ -2957,7 +2957,10 @@ class NativeClashEnv:
                 queued_tick_value = current_tick
             queued_tick = _response_int(queued_tick_value, "hand queued tick", minimum=0)
             if queued_tick >= applied_tick:
-                raise RunnerError("native hand action was not queued before its absolute execute tick")
+                raise RunnerError(
+                    "native hand action was not queued before its absolute execute tick "
+                    f"(queued_tick={queued_tick}, applied_tick={applied_tick}, observe_tick={current_tick})"
+                )
             return {
                 **result,
                 "owner": action.owner,
