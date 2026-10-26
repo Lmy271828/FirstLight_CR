@@ -59,3 +59,4 @@ Thumbs.db
 !/checkpoints/IL/checkpoint-step-00029396.pt
 /checkpoints/**/*.tmp
 /logs/
+/checkpoints/
