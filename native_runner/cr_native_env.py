@@ -22,6 +22,7 @@ from typing import Any, Iterable, Mapping
 
 from .action_movement_runtime import ActionMovementRuntimeError, parse_action_movement_runtime
 from .attestation import attestation_from_response, verify_runner_attestation
+from .invasive import invasive
 from .character_state_runtime import CharacterStateRuntimeError, parse_character_state_runtime
 from .contracts import RunnerAttestationV1
 from .match_factory import MatchConfig
@@ -2796,6 +2797,7 @@ class NativeClashEnv:
             self._phase_validation_next_sequence = None
         return validated
 
+    @invasive("engine speed control does not exist on a real phone")
     def set_speed(self, multiplier: float) -> dict[str, Any]:
         """Set stock native-render logical speed without changing render FPS.
 
