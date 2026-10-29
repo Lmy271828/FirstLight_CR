@@ -464,3 +464,25 @@ class StreamCapture:
     def stats(self) -> dict:
         with self._lock:
             return dict(self._stats)
+
+
+# P1 纯度阶梯：底部 UI 条（手牌 4 卡 + 圣水条），与 ARENA_CROP 拼合后
+# 覆盖完整玩家可见信息。标定空间同 SOURCE_REFERENCE（1080x1920）。
+# 后续 P1 用视觉模板匹配从这里提取圣水数值与手牌卡面，替换探针侧通道。
+BOTTOM_CROP = (0, 1620, 1080, 1920)
+
+
+def capture_bottom(
+    adb: str,
+    serial: str,
+    size: tuple[int, int] = (120, 648),
+    timeout: float = 15.0,
+    crop: tuple[int, int, int, int] = BOTTOM_CROP,
+) -> np.ndarray:
+    """One-shot: screencap the guest, crop the bottom UI strip, downsample.
+
+    size 默认 (H=120, W=648)：与 1080x300 的标定矩形等比（648/120 = 5.4），
+    保持卡面纵横比不失真，便于后续模板匹配。
+    """
+
+    return crop_resize(capture_png(adb, serial, timeout=timeout), size, crop=crop)
